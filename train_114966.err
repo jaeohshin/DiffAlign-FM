@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/store/jaeohshin/work/Diffalign_iljung/train.py", line 331, in <module>
+    train(args)
+  File "/store/jaeohshin/work/Diffalign_iljung/train.py", line 197, in train
+    train_set = ConformationDataset(data_path, transform=None)
+TypeError: ConformationDataset.__init__() got an unexpected keyword argument 'transform'

@@ -1,0 +1,19 @@
+Running training on a single GPU.
+Loading data from data/extended_remove_h_centered_v2.pkl
+Loaded 74331 conformations
+Data loaded. Dataset size: 74331, DataLoader batch size: 32
+cuda
+Model initialized on cuda (num_timesteps=20).
+[warn] checkpoint not found: ./param/64.pt → training from scratch
+Starting training loop (Cosine Warm Restarts)...
+[Iter 1/100] Avg Loss: 3.8222, LR: 9.99e-05
+[Iter 2/100] Avg Loss: 2.8372, LR: 9.98e-05
+[Iter 3/100] Avg Loss: 2.6045, LR: 9.95e-05
+[Iter 4/100] Avg Loss: 2.5660, LR: 9.90e-05
+[Iter 5/100] Avg Loss: 2.5072, LR: 9.85e-05
+[Iter 6/100] Avg Loss: 2.3712, LR: 9.79e-05
+[Iter 7/100] Avg Loss: 2.2904, LR: 9.71e-05
+[Iter 8/100] Avg Loss: 2.3133, LR: 9.62e-05
+[Iter 9/100] Avg Loss: 2.2206, LR: 9.52e-05
+[Iter 10/100] Avg Loss: 2.1955, LR: 9.41e-05
+[ckpt] saved to ./checkpoints/10.pt

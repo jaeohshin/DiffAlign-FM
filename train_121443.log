@@ -1,0 +1,72 @@
+Running training on a single GPU.
+Loading data from data/extended_remove_h_centered_v2.pkl
+Loaded 74331 conformations
+Data loaded. Dataset size: 74331, DataLoader batch size: 64
+cuda
+Model initialized on cuda (num_timesteps=100).
+No checkpoint specified → training from scratch
+Starting training loop (Cosine Warm Restarts)...
+[Iter 1/100] Avg Loss: 3.8781, LR: 9.99e-05
+[Iter 2/100] Avg Loss: 2.7346, LR: 9.98e-05
+[ckpt] saved to ./checkpoints/2.pt
+[Iter 3/100] Avg Loss: 2.4913, LR: 9.95e-05
+[Iter 4/100] Avg Loss: 2.4214, LR: 9.90e-05
+[ckpt] saved to ./checkpoints/4.pt
+[Iter 5/100] Avg Loss: 2.2461, LR: 9.85e-05
+[Iter 6/100] Avg Loss: 2.2268, LR: 9.79e-05
+[ckpt] saved to ./checkpoints/6.pt
+[Iter 7/100] Avg Loss: 2.1899, LR: 9.71e-05
+[Iter 8/100] Avg Loss: 2.1893, LR: 9.62e-05
+[ckpt] saved to ./checkpoints/8.pt
+[Iter 9/100] Avg Loss: 2.1003, LR: 9.52e-05
+[Iter 10/100] Avg Loss: 2.1048, LR: 9.41e-05
+[ckpt] saved to ./checkpoints/10.pt
+[Iter 11/100] Avg Loss: 2.0378, LR: 9.29e-05
+[Iter 12/100] Avg Loss: 2.0260, LR: 9.16e-05
+[ckpt] saved to ./checkpoints/12.pt
+[Iter 13/100] Avg Loss: 2.0055, LR: 9.02e-05
+[Iter 14/100] Avg Loss: 2.0074, LR: 8.87e-05
+[ckpt] saved to ./checkpoints/14.pt
+[Iter 15/100] Avg Loss: 1.9509, LR: 8.71e-05
+[Iter 16/100] Avg Loss: 1.9590, LR: 8.54e-05
+[ckpt] saved to ./checkpoints/16.pt
+[Iter 17/100] Avg Loss: 1.9618, LR: 8.37e-05
+[Iter 18/100] Avg Loss: 1.9104, LR: 8.18e-05
+[ckpt] saved to ./checkpoints/18.pt
+[Iter 19/100] Avg Loss: 1.9260, LR: 7.99e-05
+[Iter 20/100] Avg Loss: 1.8975, LR: 7.79e-05
+[ckpt] saved to ./checkpoints/20.pt
+[Iter 21/100] Avg Loss: 1.9001, LR: 7.58e-05
+[Iter 22/100] Avg Loss: 1.8937, LR: 7.37e-05
+[ckpt] saved to ./checkpoints/22.pt
+[Iter 23/100] Avg Loss: 1.8082, LR: 7.15e-05
+[Iter 24/100] Avg Loss: 1.8782, LR: 6.93e-05
+[ckpt] saved to ./checkpoints/24.pt
+[Iter 25/100] Avg Loss: 1.8098, LR: 6.70e-05
+[Iter 26/100] Avg Loss: 1.8040, LR: 6.47e-05
+[ckpt] saved to ./checkpoints/26.pt
+[Iter 27/100] Avg Loss: 1.8058, LR: 6.23e-05
+[Iter 28/100] Avg Loss: 1.8000, LR: 6.00e-05
+[ckpt] saved to ./checkpoints/28.pt
+[Iter 29/100] Avg Loss: 1.7973, LR: 5.76e-05
+[Iter 30/100] Avg Loss: 1.7927, LR: 5.51e-05
+[ckpt] saved to ./checkpoints/30.pt
+[Iter 31/100] Avg Loss: 1.7854, LR: 5.27e-05
+[Iter 32/100] Avg Loss: 1.7938, LR: 5.03e-05
+[ckpt] saved to ./checkpoints/32.pt
+[Iter 33/100] Avg Loss: 1.8030, LR: 4.78e-05
+[Iter 34/100] Avg Loss: 1.8048, LR: 4.54e-05
+[ckpt] saved to ./checkpoints/34.pt
+[Iter 35/100] Avg Loss: 1.7770, LR: 4.30e-05
+[Iter 36/100] Avg Loss: 1.7686, LR: 4.05e-05
+[ckpt] saved to ./checkpoints/36.pt
+[Iter 37/100] Avg Loss: 1.7189, LR: 3.82e-05
+[Iter 38/100] Avg Loss: 1.7076, LR: 3.58e-05
+[ckpt] saved to ./checkpoints/38.pt
+[Iter 39/100] Avg Loss: 1.7084, LR: 3.35e-05
+[Iter 40/100] Avg Loss: 1.7102, LR: 3.12e-05
+[ckpt] saved to ./checkpoints/40.pt
+[Iter 41/100] Avg Loss: 1.7105, LR: 2.90e-05
+[Iter 42/100] Avg Loss: 1.7384, LR: 2.68e-05
+[ckpt] saved to ./checkpoints/42.pt
+[Iter 43/100] Avg Loss: 1.6840, LR: 2.47e-05
