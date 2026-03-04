@@ -14,3 +14,4 @@ __pycache__/
 # Conda/pip
 *.egg-info/
 
+data/
