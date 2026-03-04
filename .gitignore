@@ -1,0 +1,16 @@
+# Data files
+data/
+checkpoints/
+
+# Logs
+*.log
+*.err
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Conda/pip
+*.egg-info/
+
