@@ -4,7 +4,7 @@ A molecular alignment framework that replaces the diffusion process in DiffAlign
 
 ## Overview
 
-This project builds on [DiffAlign](https://github.com/kim-iljung/DiffAlign), a conditional E(3)-equivariant diffusion model for flexible molecular alignment. The goal is to improve DiffAlign by replacing the diffusion generative framework with flow matching, following the approach used in [ET-Flow](https://github.com/sygil-dev/et-flow).
+This project builds on [DiffAlign](https://github.com/kim-iljung/DiffAlign), a conditional E(3)-equivariant diffusion model for flexible molecular alignment. The goal is to improve DiffAlign by replacing the diffusion generative framework with flow matching, following the approach used in [ET-Flow](https://github.com/shenoynikhil/ETFlow).
 
 ## Roadmap
 
