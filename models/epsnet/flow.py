@@ -710,7 +710,8 @@ class FlowAlign(nn.Module):
         w_rep = float(getattr(self, 'repulsion_weight', self.repulsion_weight))
         loss = w_v*v_loss + w_x0*x0_loss + w_rep*rep_loss
         return loss
-
+    
+    @torch.no_grad()
     def _repulsion_loss(self, qb: Batch, x0_hat: torch.Tensor) -> torch.Tensor:
         """k-hop(≤repulsion_exclude_hops) 쌍 제외 후 마진 기반 충돌 페널티."""
         device = x0_hat.device
