@@ -10,13 +10,20 @@
 
 source ~/.bashrc
 conda activate diffalign
-cd /store/jaeohshin/work/Diffalign_iljung
+cd /store/jaeohshin/work/Diffalign
+
+echo "Job started at $(date)"
+echo "Node: $(hostname)"
+echo "GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader)"
 
 python train_flow.py \
-    --iter_num 100 \
+    --iter_num 200 \
+    --checkpoint ./checkpoints_flow/100.pt \
     --learning_rate 1e-4 \
-    --batch_size 64 \
+    --batch_size 32 \
     --num_workers 12 \
     --save_dir ./checkpoints_flow \
     --save_interval 2 \
-    --num_steps 100
+    --num_steps 100 \
+    --t0 64 \
+    --eta_min 5e-7

@@ -9,7 +9,7 @@ This project builds on [DiffAlign](https://github.com/kim-iljung/DiffAlign), a c
 ## Roadmap
 
 - [x] Phase 0: Understand and reproduce DiffAlign (author's experimental code)
-- [ ] Phase 1: Replace diffusion → flow matching (keep EGNN backbone)
+- [x] Phase 1: Replace diffusion → flow matching (keep EGNN backbone)
 - [ ] Phase 2: Replace EGNN → Equivariant Transformer (keep flow matching)
 
 ## Key Changes from DiffAlign
@@ -25,14 +25,27 @@ This project builds on [DiffAlign](https://github.com/kim-iljung/DiffAlign), a c
 - Replace EGNN with Equivariant Transformer from ET-Flow
 - Keep flow matching framework from Phase 1
 
+## Results
+
+Evaluated on the [DISCO benchmark](https://github.com/...) (success rate %).
+
+| Method | RMSD < 1 Å | RMSD < 2 Å | RMSD < 3 Å |
+|---|---|---|---|
+| DiffAlign + UFF with pocket (paper) | 6.0 | 18.4 | 27.9 |
+| FlowAlign baseline | 2.6 | 13.1 | 26.2 |
+| **FlowAlign (ckpt 188)** | **6.6** | **19.4** | **31.7** |
+
+FlowAlign (ckpt 188) outperforms the original diffusion-based DiffAlign across all thresholds, validating the flow matching replacement.
+
 ## Repository Structure
+
 ```
 models/
   encoder/
     egnn.py          # E(3)-equivariant GNN (Phase 1 backbone)
   epsnet/
     diffusion.py     # Original DiffAlign (baseline)
-    flow.py          # FlowAlign - flow matching replacement (Phase 1)
+    flow.py          # FlowAlign — flow matching replacement (Phase 1)
 utils/
   datasets.py        # Data loading
   chem.py            # Chemistry utilities

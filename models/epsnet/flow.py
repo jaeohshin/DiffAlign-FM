@@ -669,6 +669,17 @@ class FlowAlign(nn.Module):
         device = query_batch.pos.device
         x0 = query_batch.pos
         num_graphs = query_batch.num_graphs
+        
+        """So to summarize the key dimensions:
+
+        G = 64 — number of molecules (graphs) in the batch
+        Nq — total query atoms across all 64 molecules
+        t_graph: [G] = [64] — one t per molecule
+        t_n: [Nq, 1] — one t per atom (broadcast from t_graph)
+        x0: [Nq, 3] — clean coordinates
+        eps: [Nq, 3] — sampled noise
+        x_t: [Nq, 3] — noisy coordinates
+        v_target: [Nq, 3] — target velocity"""
 
         # t ~ U[0,1] per graph (continuous)
         t_graph = torch.rand(num_graphs, device=device)                         # [G]
@@ -897,7 +908,10 @@ class FlowAlign(nn.Module):
                 from torch import autograd
                 coords_q0 = x0_star.index_select(0, gather_idx_q).view(B, Nq, 3).detach()
                 with torch.no_grad():
-                    uff_model._refresh_nonbond_candidates(coords_q0)
+#                    uff_model._refresh_nonbond_candidates(coords_q0)
+                    uff_model._refresh_nonbond_candidates(
+                        torch.cat([coords_q0, pocket_coords_fixed], dim=1)
+                    )
                 coords_q = coords_q0.clone()
                 inner = max(1, int(uff_inner_steps))
                 step_scale = (uff_guidance_scale * gate_t) / float(inner)

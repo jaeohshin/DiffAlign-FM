@@ -15,3 +15,11 @@ __pycache__/
 *.egg-info/
 
 data/
+checkpoints/
+checkpoints_flow/
+checkpoints/
+checkpoints_flow/
+.vscode/
+output_disco/
+*.swp
+example/

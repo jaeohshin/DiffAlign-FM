@@ -20,7 +20,7 @@ from tqdm import tqdm
 import numpy as np
 
 # ==== 프로젝트 의존 경로 ====
-from models.epsnet.flow import FlowAlign  # 모델 경로 확인
+from models.epsnet.diffusion import DiffAlign  # 모델 경로 확인
 from utils.datasets import ConformationDataset  # 데이터셋 경로 확인
 # 필요시 transforms, misc 사용
 # from utils.transforms import *
@@ -184,84 +184,141 @@ def ensure_reference_batch(reference_batch, device):
     return empty.to(device)
 
 def train(args):
+    print("Running training on a single GPU.")
+
+    # --- 장치/기본 설정 ---
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    
-    # 데이터셋 로드
-    train_set = ConformationDataset('data/extended_remove_h_centered_v2.pkl', transform=None)
-    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True,
-                              num_workers=args.num_workers, pin_memory=True, drop_last=True,
-                              collate_fn=custom_collate)
+    if not torch.cuda.is_available():
+        print("CUDA not available, using CPU.")
+    torch.set_printoptions(precision=2, sci_mode=False)
 
-    # 모델 초기화
-    model = FlowAlign(num_steps=args.num_steps).to(device)
+    # --- 데이터셋 ---
+    data_path = 'data/extended_remove_h_centered_v2.pkl'  # 경로 확인
+    train_set = ConformationDataset(data_path, transform=None)
 
-    # --- 재시작 로직 적용 ---
-    start_it = 0
-    if args.checkpoint and os.path.exists(args.checkpoint):
-        load_checkpoint_safely(model, args.checkpoint)
-        # 파일 이름에서 숫자를 추출하거나, 수동으로 100 설정
-        # match = re.search(r'(\d+)\.pt', args.checkpoint)
-        # if match: start_it = int(match.group(1))
-        start_it = 100 
+    train_loader = DataLoader(
+        train_set,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=args.num_workers,
+        pin_memory=torch.cuda.is_available(),
+        drop_last=True,
+        collate_fn=custom_collate,
+    )
+    print(f"Data loaded. Dataset size: {len(train_set)}, DataLoader batch size: {args.batch_size}")
 
-    # Global Step 오프셋 계산 (로그 및 NaN 디버깅용)
-    steps_per_epoch = len(train_loader)
-    global_step = start_it * steps_per_epoch
+    # --- 모델 ---
+    # ※ 여기를 4스텝로 맞추고 싶으면 DiffAlign(num_timesteps=4, ...) 로 생성
+    model = DiffAlign(num_timesteps=args.num_timesteps).to(device)
+    print(device)
+    print(f"Model initialized on {device} (num_timesteps={args.num_timesteps}).")
 
+    # --- 체크포인트 로드 (스케줄 버퍼 드랍) ---
+    if args.checkpoint is not None and os.path.exists(args.checkpoint):
+        load_checkpoint_safely(model, args.checkpoint, strict=False, verbose=True)
+    else:
+        if args.checkpoint:
+            print(f"[warn] checkpoint not found: {args.checkpoint} → training from scratch")
+        else:
+            print("No checkpoint specified → training from scratch")
+
+    # --- 옵티마이저 & 스케줄러 ---
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)
-    scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=args.t0, T_mult=args.t_mult, eta_min=args.eta_min)
+    scheduler = CosineAnnealingWarmRestarts(
+        optimizer,
+        T_0=args.t0,
+        T_mult=args.t_mult,
+        eta_min=args.eta_min,
+    )
 
-    print(f"Starting/Resuming from Iter {start_it+1} (Global Step: {global_step})")
+    global_step = 0
     model.train()
+    print("Starting training loop (Cosine Warm Restarts)...")
 
-    for it in range(start_it, args.iter_num):
-        epoch_loss_sum, epoch_steps = 0.0, 0
-        pbar = tqdm(enumerate(train_loader), total=steps_per_epoch, desc=f"[Iter {it+1}/{args.iter_num}]")
+    for it in range(args.iter_num):
+        losses = []
+        epoch_loss_sum = 0.0
+        epoch_steps = 0
+
+        pbar = tqdm(enumerate(train_loader), total=len(train_loader),
+                    desc=f"[Iter {it+1}/{args.iter_num}]", leave=True)
 
         for step_idx, batch in pbar:
-            if batch is None or batch[0] is None: continue
-            query_batch, reference_batch = batch[0].to(device), ensure_reference_batch(batch[1], device)
+            if batch is None or batch[0] is None:
+                continue
+
+            query_batch, reference_batch = batch
+
+            # device로 이동
+            query_batch = query_batch.to(device, non_blocking=True)
+            reference_batch = ensure_reference_batch(reference_batch, device)
 
             optimizer.zero_grad(set_to_none=True)
-            loss = model.get_loss(query_batch=query_batch, reference_batch=reference_batch)
 
+            loss = model.get_loss(
+                query_batch=query_batch,
+                reference_batch=reference_batch,
+            )
+
+            # NaN/Inf 방지
             if torch.isinf(loss) or torch.isnan(loss):
-                torch.save(model.state_dict(), f"./checkpoints_flow/nan_at_{global_step}.pt")
-                raise ValueError(f"NaN loss at step {global_step}")
+                print(f"\n[warn] NaN/Inf loss at iter {it+1}, step {global_step}. Skip.")
+                continue
 
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
 
-            # 스케줄러 업데이트: (현재 Iter + 에폭 내 진행률) 전달
+            # === 스케줄러 per-step 업데이트 (분수 에폭) ===
             global_step += 1
-            epoch_progress = (step_idx / steps_per_epoch)
+            epoch_progress = (step_idx / len(train_loader)) if len(train_loader) > 0 else 0.0
             scheduler.step(it + epoch_progress)
 
-            loss_val = loss.item()
-            epoch_loss_sum += loss_val
+            # 로깅
+            loss_item = float(loss.detach().item())
+            losses.append(loss_item)
+            epoch_loss_sum += loss_item
             epoch_steps += 1
-            pbar.set_postfix({'loss': f'{loss_val:.4f}', 'avg': f'{epoch_loss_sum/epoch_steps:.4f}', 'lr': f"{optimizer.param_groups[0]['lr']:.2e}"})
 
-        # 저장
+            current_lr = optimizer.param_groups[0]['lr']
+            running_avg_loss = epoch_loss_sum / max(1, epoch_steps)
+            pbar.set_postfix({
+                'loss': f'{loss_item:.4f}',
+                'avg_loss': f'{running_avg_loss:.4f}',
+                'lr': f"{current_lr:.2e}",
+            })
+
+        # --- 이터 종료 로그 ---
+        if losses:
+            loss_mean = float(np.mean(losses))
+            current_lr = optimizer.param_groups[0]['lr']
+            print(f"[Iter {it+1}/{args.iter_num}] Avg Loss: {loss_mean:.4f}, LR: {current_lr:.2e}")
+        else:
+            print(f"[Iter {it+1}/{args.iter_num}] No valid loss recorded.")
+
+        # --- 체크포인트 저장 ---
         if (it + 1) % args.save_interval == 0:
             os.makedirs(args.save_dir, exist_ok=True)
-            torch.save(model.state_dict(), os.path.join(args.save_dir, f'{it+1}.pt'))
+            save_path = os.path.join(args.save_dir, f'{it+1}.pt')
+            torch.save(model.state_dict(), save_path)
+            print(f"[ckpt] saved to {save_path}")
+
+    print("Training finished.")
 
 
 # ------------------------------------------------------------
 # 4) 엔트리포인트
 # ------------------------------------------------------------
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='FlowAlign Single GPU Training')
+    parser = argparse.ArgumentParser(description='DiffAlign Single GPU Training (safe load, cosine restarts)')
     parser.add_argument('--iter_num', type=int, default=1000, help='Number of training iterations (epochs)')
     parser.add_argument('--learning_rate', type=float, default=5e-5, help='Initial(max) learning rate')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size')
     parser.add_argument('--num_workers', type=int, default=4, help='Dataloader workers')
     parser.add_argument('--save_dir', type=str, default='./param', help='Directory to save checkpoints')
     parser.add_argument('--save_interval', type=int, default=1, help='Save every N iters')
-    parser.add_argument('--checkpoint', type=str, default=None, help='(Optional) checkpoint path to load')
-    parser.add_argument('--num_steps', type=int, default=100, help='ODE steps at inference')
+    parser.add_argument('--checkpoint', type=str, default='./param/64.pt', help='(Optional) checkpoint path to load')
+    parser.add_argument('--num_timesteps', type=int, default=32, help='Target T for this run (e.g., 4)')
     # Cosine Warm Restarts
     parser.add_argument('--t0', type=int, default=64, help='First cycle length (epochs)')
     parser.add_argument('--t_mult', type=int, default=1, help='Cycle length multiplier')
