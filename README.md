@@ -32,6 +32,7 @@ Evaluated on the [DISCO benchmark](https://github.com/...) (success rate %).
 | Method | RMSD < 1 Å | RMSD < 2 Å | RMSD < 3 Å |
 |---|---|---|---|
 | DiffAlign + UFF with pocket (paper) | 6.0 | 18.4 | 27.9 |
+| DiffAlign baseline | 5.6 | 19.2 | 30.0 | 
 | FlowAlign baseline | 2.6 | 13.1 | 26.2 |
 | **FlowAlign (ckpt 188)** | **6.6** | **19.4** | **31.7** |
 
